@@ -11,16 +11,11 @@ exports.connectDB = function() {
     csv()
         .fromFile(csvFilePath)
         .then((jsonObj) => {
-            console.log(jsonObj);
             mongoClient.connect(url, { useNewUrlParser: true }, (err, db) => {
                 if (err) throw err;
                 var dbo = db.db("crimenes");
                 dbo.collection("ofensiva").insertMany(jsonObj, (err, res) => {
                     if (err) throw err;
-                    console.log("Number of documents inserted: " + res.insertedCount);
-                    /**
-                        Number of documents inserted: 5
-                    */
                     db.close();
                 });
             });
@@ -29,16 +24,12 @@ exports.connectDB = function() {
     csv()
         .fromFile(csvFilecrimen)
         .then((jsonObj1) => {
-            console.log(jsonObj1);
             mongoClient.connect(url, { useNewUrlParser: true }, (err, db) => {
                 if (err) throw err;
                 var dbo = db.db("crimenes");
                 dbo.collection("crimen").insertMany(jsonObj1, (err, res) => {
                     if (err) throw err;
                     console.log("Number of documents inserted: " + res.insertedCount);
-                    /**
-                        Number of documents inserted: 5
-                    */
                     db.close();
                 });
             });
