@@ -78,7 +78,7 @@ exports.year = function(req, res) {
             $group: { _id: { $year: { $convert: { input: "$REPORTED_DATE", to: "date" } } }, total: { $sum: 1 } }
         },
         {
-            $sort: { total: -1 }
+            $sort: { _id: 1 }
         }
     ], (documentos) => {
         res.send(documentos);
