@@ -14,7 +14,7 @@ exports.connectDB = function() {
             mongoClient.connect(url, { useNewUrlParser: true }, (err, db) => {
                 if (err) throw err;
                 var dbo = db.db("crimenes");
-                dbo.collection("ofensiva").insertMany(jsonObj, (err, res) => {
+                dbo.collection("ofensive").insertMany(jsonObj, (err, res) => {
                     if (err) throw err;
                     db.close();
                 });
@@ -37,32 +37,90 @@ exports.connectDB = function() {
 }
 
 
-exports.categoria = function(req, res) {
-    getcategoria({ "OFFENSE_CATEGORY_ID": "all-other-crimes" }, (documentos) => {
+exports.category = function(req, res) {
+    gettodb([{
+            $group: { _id: "$OFFENSE_CATEGORY_ID", total: { $sum: 1 } }
+        },
+        {
+            $sort: { total: -1 }
+        }
+    ], (documentos) => {
         res.send(documentos);
     })
 }
 
-function getcategoria(query, callback) {
+exports.ofensive = function(req, res) {
+    gettodb([{
+            $group: { _id: "$OFFENSE_TYPE_ID", total: { $sum: 1 } }
+        },
+        {
+            $sort: { total: -1 }
+        }
+    ], (documentos) => {
+        res.send(documentos);
+    })
+}
+
+exports.district = function(req, res) {
+    gettodb([{
+            $group: { _id: "$DISTRICT_ID", total: { $sum: 1 } }
+        },
+        {
+            $sort: { total: -1 }
+        }
+    ], (documentos) => {
+        res.send(documentos);
+    })
+}
+
+exports.year = function(req, res) {
+    gettodb([{
+            $group: { _id: { $year: { $convert: { input: "$REPORTED_DATE", to: "date" } } }, total: { $sum: 1 } }
+        },
+        {
+            $sort: { total: -1 }
+        }
+    ], (documentos) => {
+        res.send(documentos);
+    })
+}
+
+function gettodb(query, callback) {
     mongoClient.connect(url, function(err, db) { //here db is the client obj
         if (err) throw err;
         var dbase = db.db("crimenes"); //here
-        findDataCategoria(query, dbase, callback)
-            //   client.close();
+        findDateDb(query, dbase, callback)
     });
 }
 
-const findDataCategoria = async function(query, db, callback) {
+const findDateDb = async function(query, db, callback) {
     const collection = db.collection('crimen');
-    /*
-        collection.find({ "OFFENSE_CATEGORY_ID": "burglary" }).toArray(function(err, docs) {
-            console.log(docs.length)
-            callback(docs);
-        });*/
-
-    collection.group(['OFFENSE_CATEGORY_ID'], {}, { "count": 0 }, "function (obj, prev) { prev.count++; }", function(err, docs) {
-        console.log(docs);
-        callback(docs);
+    collection.aggregate(query).toArray(function(err, docs) {
+        callback(docs)
     });
+}
 
+exports.crimeOrtrafic = function(req, res) {
+    getcrimeOrtrafic((documentos) => {
+        res.send(documentos);
+    })
+}
+
+
+function getcrimeOrtrafic(callback) {
+    mongoClient.connect(url, function(err, db) { //here db is the client obj
+        if (err) throw err;
+        var dbase = db.db("crimenes"); //here
+        findDatacrimeOrtrafic(dbase, callback)
+    });
+}
+
+const findDatacrimeOrtrafic = function(db, callback) {
+    const collection = db.collection('crimen');
+    collection.find({ "IS_TRAFFIC": "1" }).count(function(e, count) {
+        var IS_TRAFFIC = count;
+        collection.find({ "IS_CRIME": "1" }).count(function(e, count) {
+            callback([{ "IS_TRAFFIC": IS_TRAFFIC, "IS_CRIME": count }])
+        });
+    });
 }

@@ -6,7 +6,9 @@ exports.assignRoutes = function(app) {
     //Insertar datos
     // db.connectDB();
 
-    app.get('/categoria', db.categoria);
-    //  app.post('/noticia', db.selectNew);
-
+    app.get('/category', db.category);
+    app.get('/ofensive', db.ofensive);
+    app.get('/crimeOrTrafic', db.crimeOrtrafic);
+    app.get('/district', db.district);
+    app.get('/year', db.year);
 }
